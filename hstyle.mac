@@ -1,0 +1,11 @@
+font             42 
+opt_stat         1111
+opt_fit          111
+main_title_size  0.035
+title_size       0.035, 0.035, 0.035
+label_size       0.035, 0.035, 0.035
+title_offset     1.0, 1.0, 1.0
+fix_pad_size     true
+pad_size         700,   500
+pad_margin       0.10, 0.15, 0.10, 0.10
+label_offset     0.005, 0.005,  0.005
