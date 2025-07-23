@@ -29,8 +29,8 @@ STARK
         print(content_x6, file=output_file)
 
 ######################################################
-def add_qqq5(output_file, z_position, flip=1):
-    for iphi in range(0,4):
+def add_qqq5(output_file, z_position, flip=1, num_det=4):
+    for iphi in range(0,num_det):
         phi = 90*iphi
         content_qqq5 = f"""%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % QQQ5 Backward E {iphi}/4
@@ -170,16 +170,6 @@ if __name__ == "__main__":
     make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
 
     #################################################################################################
-    name = "ko2421_efficiency"
-    det_file = make_detector_file(name)
-    add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1)
-    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0)
-    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1)
-    reaction, conf = make_isotropic(particle_name="proton", energy1=10, energy2=10, angle1=0, angle2=90)
-    make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
-
-    #################################################################################################
     name = "ko2520"
     det_file = make_detector_file(name)
     add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
@@ -198,6 +188,40 @@ if __name__ == "__main__":
     add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1)
     add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0)
     add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1)
+    add_qqq5  (output_file=det_file, z_position=160)
+    reaction, conf = make_isotropic(particle_name="proton", energy1=10, energy2=10, angle1=0, angle2=90)
+    make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
+
+    #################################################################################################
+    name = "efficiency_ko2421"
+    det_file = make_detector_file(name)
+    add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
+    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1)
+    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0)
+    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1)
+    reaction, conf = make_isotropic(particle_name="proton", energy1=10, energy2=10, angle1=0, angle2=90)
+    make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
+
+    #################################################################################################
+    name = "efficiency_ko2520_q4"
+    det_file = make_detector_file(name)
+    add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
+    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1)
+    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0)
+    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1)
+    #add_qqq5  (output_file=det_file, z_position=-50, num_det=4) # dummies
+    add_qqq5  (output_file=det_file, z_position=160, num_det=2)
+    reaction, conf = make_isotropic(particle_name="proton", energy1=10, energy2=10, angle1=0, angle2=90)
+    make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
+
+    #################################################################################################
+    name = "efficiency_ko2520_q8"
+    det_file = make_detector_file(name)
+    add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
+    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1)
+    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0)
+    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1)
+    #add_qqq5  (output_file=det_file, z_position=-50, num_det=4) # dummies
     add_qqq5  (output_file=det_file, z_position=160)
     reaction, conf = make_isotropic(particle_name="proton", energy1=10, energy2=10, angle1=0, angle2=90)
     make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")

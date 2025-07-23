@@ -5,11 +5,11 @@ void SaveFigures();
 
 void draw_eloss_qqq5(TString fileName="", TString fileName2="")
 {
-    bool draw_layers = false;
+    bool draw_layers = true;
     bool draw_kinematics = true;
     vector<int> layers = {0,1};
-    //vector<int> kinematics = {0,1,2};
-    vector<int> kinematics = {0};
+    vector<int> kinematics = {0,1,2};
+    //vector<int> kinematics = {0};
 
     cvsList = new TObjArray();
 
@@ -34,7 +34,7 @@ void draw_eloss_qqq5(TString fileName="", TString fileName2="")
     //TCut cut_common = "mult>0";
     TCut cut_common = "";
 
-    cut_common = cut_common && "e1>0&&e2>0";
+    //cut_common = cut_common && "e1>0&&e2>0";
     cut_common = cut_common && "strip2>1";
     //cut_common = cut_common && "strip1>0&&strip2>0";
 
@@ -48,26 +48,33 @@ void draw_eloss_qqq5(TString fileName="", TString fileName2="")
     {
         for (int i : layers)
         {
-            TCut cut_layer = TCut("first layer", "e1>0.01");
-            if (i==1) cut_layer = TCut("second layer", "e2>0.01");
-            cut_layer = cut_layer && cut_common;
+            TCut cut = TCut("first layer", "e1>0");
+            if (i==1) cut = TCut("second layer", "e2>0");
+            cut = cut && cut_common;
 
             auto cvs_layer = new TCanvas(Form("cvs_layer_%d",i),"",1200,1200);
             cvs_layer -> Divide(2,2);
             cvsList -> Add(cvs_layer);
 
-            auto hist1 = new TH1D(Form("hl%d_phi"  ,i),";#phi (deg)",180,-180,180);
-            auto hist2 = new TH1D(Form("hl%d_tta"  ,i),";#theta (deg)",180,0,30);
-            auto hist3 = new TH1D(Form("hl%d_strip",i),";strip no.",35,0,35);
-            auto hist4 = new TH2D(Form("hl%d_xy"   ,i),";x (mm);y (mm)",200,-100,100,200,-100,100);
+            auto hist1 = new TH1D(Form("hl%d_phi"  ,i),TString(cut.GetTitle())+";#phi (deg)",180,-180,180);
+            auto hist2 = new TH1D(Form("hl%d_tta"  ,i),TString(cut.GetTitle())+";#theta (deg)",180,0,30);
+            auto hist3 = new TH1D(Form("hl%d_strip",i),TString(cut.GetTitle())+";strip no.",40,0,40);
+            auto hist4 = new TH2D(Form("hl%d_xy"   ,i),TString(cut.GetTitle())+";x (mm);y (mm)",200,-100,100,200,-100,100);
 
-            cvs_layer->cd(1)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("180/pi*pos%d.Theta()>>%s",i+1,hist1->GetName()),cut_layer,"");
-            cvs_layer->cd(2)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("180/pi*pos%d.Phi()>>%s",i+1,hist2->GetName()),cut_layer,"");
-            cvs_layer->cd(3)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("strip%d>>%s",i+1,hist3->GetName()),cut_layer,"");
-            cvs_layer->cd(4)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("pos%d.fX:pos%d.fY>>%s",i+1,i+1,hist4->GetName()),cut_layer,"colz");
+            cvs_layer->cd(1)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("180/pi*pos%d.Phi()>>%s",i+1,hist1->GetName()),cut,"");
+            cvs_layer->cd(2)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("180/pi*pos%d.Theta()>>%s",i+1,hist2->GetName()),cut,"");
+            cvs_layer->cd(3)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("strip%d>>%s",i+1,hist3->GetName()),cut,"");
+            cvs_layer->cd(4)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("pos%d.fX:pos%d.fY>>%s",i+1,i+1,hist4->GetName()),cut,"colz");
             draw_qqq5_rstrips(); // stark_common.h
 
-            //LKDrawingGroup(cvs_layer,"hstyle").Update();
+#ifndef LILAK_VERSION
+            LKDrawingGroup group(cvs_layer,"hstyle");
+            group.GetDrawing(0) -> SetStatCorner(2);
+            group.GetDrawing(1) -> SetStatCorner(1);
+            group.GetDrawing(2) -> SetStatCorner(0);
+            group.GetDrawing(3) -> SetStatCorner(0);
+            group.Update();
+#endif
         }
     }
 
@@ -75,30 +82,39 @@ void draw_eloss_qqq5(TString fileName="", TString fileName2="")
     {
         for (auto i : kinematics)
         {
-            TCut cut_pid;
-            if (i==1) cut_pid = "prim_a==1";
-            if (i==2) cut_pid = "prim_a==2";
-            TCut cut = cut_common && cut_pid;
+            TCut cut = cut_common && "e1>0&&e2>0";
+            if (i==1) cut = cut && "prim_a==1";
+            if (i==2) cut = cut && "prim_a==2";
 
             auto cvse = new TCanvas(Form("cvs_kinematics_%d",i),"",2000,1200);
             cvse -> Divide(3,2);
             cvsList -> Add(cvse);
 
-            auto hist1 = new TH2D(Form("hk%d_e1" ,i),";primary KE (Mev);e1 (MeV)",200,0,32,200,0,20);
-            auto hist2 = new TH2D(Form("hk%d_e2" ,i),";primary KE (Mev);e2 (MeV)",200,0,32,200,0,20);
-            auto hist3 = new TH2D(Form("hk%d_ea" ,i),";primary KE (Mev);e1+e2 (MeV)",200,0,32,200,0,30);
-            auto hist4 = new TH2D(Form("hk%d_e12",i),";e1 (MeV);e2 (MeV);",200,0,20,200,0,20);
-            auto hist5 = new TH3D(Form("hk%d_3d" ,i),";e1 (MeV);e2 (MeV);primary KE (MeV)",80,0,20,80,0,20,80,0,32);
-            auto hist6 = new TH2D(Form("hk%d_angle",i),";#theta (deg);#phi (deg)",180,0,45,180,-180,180);
+            auto hist1 = new TH2D(Form("hk%d_e1" ,i),TString(cut.GetTitle())+";primary KE (Mev);e1 (MeV)",200,0,32,200,0,20);
+            auto hist2 = new TH2D(Form("hk%d_e2" ,i),TString(cut.GetTitle())+";primary KE (Mev);e2 (MeV)",200,0,32,200,0,20);
+            auto hist3 = new TH2D(Form("hk%d_ea" ,i),TString(cut.GetTitle())+";primary KE (Mev);e1+e2 (MeV)",200,0,32,200,0,30);
+            auto hist4 = new TH2D(Form("hk%d_e12",i),TString(cut.GetTitle())+";e1 (MeV);e2 (MeV);",200,0,20,200,0,20);
+            auto hist5 = new TH3D(Form("hk%d_3d" ,i),TString(cut.GetTitle())+";e1 (MeV);e2 (MeV);primary KE (MeV)",80,0,20,80,0,20,80,0,32);
+            auto hist6 = new TH2D(Form("hk%d_tp" ,i),TString(cut.GetTitle())+";#theta (deg);#phi (deg)",180,0,45,180,-180,180);
+            hist5 -> SetStats(0);
 
-            cvse->cd(1)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("e1:prim_ke   >>%s",hist1->GetName()),cut,"colz");
-            cvse->cd(2)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("e2:prim_ke   >>%s",hist2->GetName()),cut,"colz");
-            cvse->cd(3)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("e1+e2:prim_ke>>%s",hist3->GetName()),cut,"colz");
-            cvse->cd(4)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("e2:e1        >>%s",hist4->GetName()),cut,"colz");
-            cvse->cd(5)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("prim_ke:e2:e1>>%s",hist5->GetName()),cut,"box2");
-            cvse->cd(6)->SetMargin(0.11,0.12,0.1,0.08);; tree -> Draw(Form("180/pi*pos1.Phi():180/pi*pos1.Theta()>>%s",hist6->GetName()),cut,"colz");
+            cvse->cd(1)->SetMargin(0.11,0.12,0.1,0.08); tree -> Draw(Form("e1:prim_ke   >>%s",hist1->GetName()),cut,"colz");
+            cvse->cd(2)->SetMargin(0.11,0.12,0.1,0.08); tree -> Draw(Form("e2:prim_ke   >>%s",hist2->GetName()),cut,"colz");
+            cvse->cd(3)->SetMargin(0.11,0.12,0.1,0.08); tree -> Draw(Form("e1+e2:prim_ke>>%s",hist3->GetName()),cut,"colz");
+            cvse->cd(4)->SetMargin(0.11,0.12,0.1,0.08); tree -> Draw(Form("e2:e1        >>%s",hist4->GetName()),cut,"colz");
+            cvse->cd(5)->SetMargin(0.11,0.12,0.1,0.08); tree -> Draw(Form("prim_ke:e2:e1>>%s",hist5->GetName()),cut,"box2");
+            cvse->cd(6)->SetMargin(0.11,0.12,0.1,0.08); tree -> Draw(Form("180/pi*pos1.Phi():180/pi*pos1.Theta()>>%s",hist6->GetName()),cut,"colz");
 
-            //LKDrawingGroup(cvse,"hstyle").Update();
+#ifndef LILAK_VERSION
+            LKDrawingGroup group(cvse,"hstyle");
+            group.GetDrawing(0) -> SetStatCorner(1);
+            group.GetDrawing(1) -> SetStatCorner(1);
+            group.GetDrawing(2) -> SetStatCorner(1);
+            group.GetDrawing(3) -> SetStatCorner(0);
+            group.GetDrawing(4) -> SetOptStat(-1);
+            group.GetDrawing(5) -> SetStatCorner(0);
+            group.Update();
+#endif
         }
     }
 
