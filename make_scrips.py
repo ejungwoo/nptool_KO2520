@@ -14,6 +14,16 @@ Target
     Z         = 0 mm"""
     print(content_target, file=output_file)
 
+def add_gas_target(output_file):
+    content_target = f"""%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+STARK
+    TargetMaterial= CH4
+    Pressure= 100 Torr
+    Temperature= 293.15 kelvin
+    Radius= 200 mm
+    Z= 363 mm"""
+    print(content_target, file=output_file)
+
 ######################################################
 def add_x6(output_file, n_detectors, rho, z_position, flip, ringN=0):
     dphi = 360./n_detectors
@@ -236,6 +246,17 @@ if __name__ == "__main__":
     name = "47K"
     det_file = make_detector_file(name)
     add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
+    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
+    add_qqq5  (output_file=det_file, z_position=160, num_det=4, ringN=3)
+    reaction, conf = make_p_elastic(particle_name="47K", energy=8*40)
+    make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
+
+    #################################################################################################
+    name = "47K_gas"
+    det_file = make_detector_file(name)
+    add_gas_target(output_file=det_file)
     add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
     add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
     add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
