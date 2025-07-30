@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 ######################################################
 def add_target(output_file, thickness_um, radius, material):
@@ -14,14 +15,16 @@ Target
     print(content_target, file=output_file)
 
 ######################################################
-def add_x6(output_file, n_detectors, rho, z_position, flip):
+def add_x6(output_file, n_detectors, rho, z_position, flip, ringN=0):
     dphi = 360./n_detectors
     for iphi in range(0,n_detectors):
         phi = iphi*dphi
+        group = ringN * 100 + iphi
         content_x6 = f"""%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % X6 Forward E {iphi+1}/{n_detectors}
 STARK
     Type = X6
+    Group = {group}
     Rho  = {rho} mm
     Phi  = {phi} deg
     Z    = {z_position} mm
@@ -29,20 +32,34 @@ STARK
         print(content_x6, file=output_file)
 
 ######################################################
-def add_qqq5(output_file, z_position, flip=1, num_det=4):
+def add_qqq5(output_file, z_position, flip=1, num_det=4, ringN=0):
     for iphi in range(0,num_det):
         phi = 90*iphi
+        group = ringN * 100 + iphi
         content_qqq5 = f"""%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % QQQ5 Backward E {iphi}/4
 STARK
     Type = QQQ5
+    Group = {group}
     Pos  = 0 0 {z_position} mm
     Beta = {phi} deg
     Flip = {flip}"""
         print(content_qqq5, file=output_file)
 
 ######################################################
-def make_p_elastic(particle_name, energy):
+def make_gaus_cs_file(mean, sigma):
+    cs_file_name = f"inputs/gaus_{mean}_{sigma}.txt"
+    print(cs_file_name)
+    cs_file = open(cs_file_name,'w')
+    for i in range(0, 1800):
+        x = i/10
+        value = np.exp(-(x - mean)**2 / (2 * sigma**2))
+        cs_file.write(f"{x}\t{value}\n")
+    cs_file.write(f"180 0")
+    return cs_file_name
+
+######################################################
+def make_p_elastic(particle_name, energy, cs_file = "flat.txt"):
     reaction_conf_name = f"{particle_name}_elastic"
     reaction_file_name = f"inputs/{reaction_conf_name}.reac"
     reaction_file = open(reaction_file_name,'w')
@@ -52,7 +69,7 @@ def make_p_elastic(particle_name, energy):
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Beam
     Particle= {particle_name}
-    Energy= 8 MeV
+    Energy= {energy} MeV
     SigmaEnergy= 0 MeV
     SigmaThetaX= 0 MeV
     SigmaPhiY= 0 MeV
@@ -70,7 +87,7 @@ TwoBodyReaction
     Heavy= {particle_name}
     ExcitationEnergyLight= 0.0 MeV
     ExcitationEnergyHeavy= 0.0 MeV
-    CrossSectionPath= flat.txt CS
+    CrossSectionPath= {cs_file} CS
     ShootLight= 1
     ShootHeavy= 1"""
     print(content, file=reaction_file)
@@ -140,7 +157,7 @@ def add_script(batch_file, viewer_file, name, detector_file_name, reaction_file_
     ana_file_name = f"stark_{name}.{reaction_conf_name}.ana.root"
     vwr_file_name = f"stark_{name}.{reaction_conf_name}.viewer.root"
     content_b = f"""tee > geant4_batch.mac <<EOF
-/run/beamOn 100000
+/run/beamOn 10000
 EOF\n
 npsimulation --record-track -D {detector_file_name} -E {reaction_file_name} -O {sim_file_name} -B geant4_batch.mac
 npanalysis -T data/{sim_file_name} SimulatedTree -O {ana_file_name}
@@ -163,32 +180,22 @@ if __name__ == "__main__":
     name = "ko2421"
     det_file = make_detector_file(name)
     add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1)
-    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0)
-    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1)
-    reaction, conf = make_p_elastic(particle_name="40Ar", energy=8)
+    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
+    #cs_example = make_gaus_cs_file(90,15)
+    #reaction, conf = make_p_elastic(particle_name="40Ar", energy=8*40, cs_file=cs_example)
+    reaction, conf = make_p_elastic(particle_name="40Ar", energy=8*40)
     make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
 
     #################################################################################################
     name = "ko2520"
     det_file = make_detector_file(name)
     add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1)
-    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0)
-    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1)
-    add_qqq5  (output_file=det_file, z_position=160)
-    reaction, conf = make_p_elastic(particle_name="21Na", energy=8)
-    reaction, conf = make_p_elastic(particle_name="25Na", energy=8)
-    make_write_script(name, det_file.name, reaction, conf)
-
-    #################################################################################################
-    name = "ko2520"
-    det_file = make_detector_file(name)
-    add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1)
-    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0)
-    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1)
-    add_qqq5  (output_file=det_file, z_position=160)
+    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
+    add_qqq5  (output_file=det_file, z_position=160, ringN=3)
     reaction, conf = make_isotropic(particle_name="proton", energy1=10, energy2=10, angle1=0, angle2=90)
     make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
 
@@ -196,44 +203,43 @@ if __name__ == "__main__":
     name = "efficiency_ko2421"
     det_file = make_detector_file(name)
     add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1)
-    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0)
-    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1)
-    reaction, conf = make_isotropic(particle_name="proton", energy1=10, energy2=10, angle1=0, angle2=90)
+    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
+    reaction, conf = make_isotropic(particle_name="proton", energy1=15, energy2=15, angle1=0, angle2=90)
     make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
 
     #################################################################################################
     name = "efficiency_ko2520_q4"
     det_file = make_detector_file(name)
     add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1)
-    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0)
-    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1)
-    #add_qqq5  (output_file=det_file, z_position=-50, num_det=4) # dummies
-    add_qqq5  (output_file=det_file, z_position=160, num_det=2)
-    reaction, conf = make_isotropic(particle_name="proton", energy1=10, energy2=10, angle1=0, angle2=90)
-    make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
-
-    #################################################################################################
-    name = "efficiency_ko2520_q8"
-    det_file = make_detector_file(name)
-    add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1)
-    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0)
-    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1)
-    #add_qqq5  (output_file=det_file, z_position=-50, num_det=4) # dummies
-    add_qqq5  (output_file=det_file, z_position=160)
-    reaction, conf = make_isotropic(particle_name="proton", energy1=10, energy2=10, angle1=0, angle2=90)
+    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
+    add_qqq5  (output_file=det_file, z_position=160, num_det=2, ringN=3)
+    reaction, conf = make_isotropic(particle_name="proton", energy1=5, energy2=20, angle1=0, angle2=90)
     make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
 
     #################################################################################################
     name = "qqq5"
     det_file = make_detector_file(name)
     add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_qqq5  (output_file=det_file, z_position=160)
-    add_qqq5  (output_file=det_file, z_position=180)
+    add_qqq5  (output_file=det_file, z_position=160, ringN=1)
+    add_qqq5  (output_file=det_file, z_position=180, ringN=1)
     batch_file, viewer_file = make_script(name)
     reaction, conf = make_isotropic(particle_name="proton", energy1=5, energy2=30, angle1=5, angle2=30)
     add_script(batch_file, viewer_file, name, det_file.name, reaction, conf, macro_for_sim="root -q create_tree_for_qqq5.C")
     reaction, conf = make_isotropic(particle_name="2H",     energy1=5, energy2=30, angle1=5, angle2=30)
     add_script(batch_file, viewer_file, name, det_file.name, reaction, conf, macro_for_sim="root -q create_tree_for_qqq5.C")
+
+    #################################################################################################
+    name = "47K"
+    det_file = make_detector_file(name)
+    add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
+    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
+    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
+    add_qqq5  (output_file=det_file, z_position=160, num_det=4, ringN=3)
+    reaction, conf = make_p_elastic(particle_name="47K", energy=8*40)
+    make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
+
