@@ -1,7 +1,8 @@
 void draw_summary(TString fileName="")
 {
     gStyle -> SetOptStat(11111111);
-    if (fileName.IsNull()) fileName = "data/stark_ko2421_efficiency.proton_e10_10_a0_90.ana.root";
+    //if (fileName.IsNull()) fileName = "data/stark_ko2421_efficiency.proton_e10_10_a0_90.ana.root";
+    if (fileName.IsNull()) fileName = "data/stark_atomx_0.proton_e15_15_a0_180.ana.root";
     cout << fileName << endl;
 
     TString anaName = fileName;

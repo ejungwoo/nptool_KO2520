@@ -58,3 +58,6 @@ viewer*.sh
 inputs/*
 zzz
 !*/.gitadd
+
+data_lilak/
+input/
