@@ -1,5 +1,10 @@
 rm -f batch*.sh
 rm -f viewer*.sh
-rm -f input/*det
-rm -f input/*reac
-rm -f input/stark*.reac
+rm -f input/*.det
+rm -f input/*.reac
+rm -f input/*.reaction
+rm -f sim_*/batch*.sh
+rm -f sim_*/viewer*.sh
+rm -f sim_*/input/*.det
+rm -f sim_*/input/*.reac
+rm -f sim_*/input/*.reaction

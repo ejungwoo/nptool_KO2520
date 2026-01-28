@@ -51,6 +51,7 @@ def add_qqq5(output_file, z_position, flip=1, num_det=4, ringN=0):
 % QQQ5 Backward E {iphi}/4
 STARK
     Type = QQQ5
+    CsI = 1
     Group = {group}
     Pos  = 0 0 {z_position} mm
     Beta = {phi} deg
@@ -203,18 +204,6 @@ if __name__ == "__main__":
     os.makedirs("figures", exist_ok=True)
 
     #################################################################################################
-    name = "ko2421"
-    det_file = make_detector_file(name)
-    add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
-    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
-    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
-    #cs_example = make_gaus_cs_file(90,15)
-    #reaction, conf = make_p_elastic(particle_name="40Ar", energy=8*40, cs_file_name=cs_example)
-    reaction, conf = make_p_elastic(particle_name="40Ar", energy=8*40)
-    make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
-
-    #################################################################################################
     name = "ko2520_21Na"
     det_file = make_detector_file(name)
     beam_diameter = 8
@@ -223,43 +212,24 @@ if __name__ == "__main__":
     add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
     add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
     add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
-    add_qqq5  (output_file=det_file, z_position=160, num_det=2, ringN=3)
-    add_qqq5  (output_file=det_file, z_position=180, num_det=2, ringN=3, flip=0)
+    #add_qqq5  (output_file=det_file, z_position=160, num_det=1, ringN=3)
+    #add_qqq5  (output_file=det_file, z_position=160, num_det=2, ringN=3)
+    add_qqq5  (output_file=det_file, z_position=180, num_det=4, ringN=3, flip=0)
+    #add_qqq5  (output_file=det_file, z_position=180, num_det=2, ringN=3, flip=0)
     cs_file_new = make_cs_file_with_angle_limit(cs_file_name="input/crosssection_drhbc_21Na_p.txt", angle1=40, angle2=160)
     reaction, conf = make_p_elastic(particle_name="21Na", energy=21*8, cs_file_name=cs_file_new, sigma_x=beam_sigma, sigma_y=beam_sigma)
-    make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
+    make_write_script(name, det_file.name, reaction, conf, macro_for_sim="root draw_ko2520.C")
 
     #################################################################################################
-    name = "ko2520_25Na"
-    det_file = make_detector_file(name)
-    add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
-    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
-    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
-    add_qqq5  (output_file=det_file, z_position=160, num_det=2, ringN=3)
-    add_qqq5  (output_file=det_file, z_position=180, num_det=2, ringN=3, flip=0)
-    cs_file_new = make_cs_file_with_angle_limit(cs_file_name="input/crosssection_drhbc_25Na_p.txt", angle1=40, angle2=160)
-    reaction, conf = make_p_elastic(particle_name="25Na", energy=25*8, cs_file_name=cs_file_new)
-    make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
-
-    #################################################################################################
-    name = "efficiency_ko2421"
-    det_file = make_detector_file(name)
-    add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
-    add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
-    add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
-    reaction, conf = make_isotropic(particle_name="proton", energy1=15, energy2=15, angle1=0, angle2=90)
-    make_write_script(name, det_file.name, reaction, conf, macro_for_ana="root draw_summary.C")
-
-    #################################################################################################
-    name = "qqq5"
-    det_file = make_detector_file(name)
-    add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
-    add_qqq5  (output_file=det_file, z_position=160, ringN=1)
-    add_qqq5  (output_file=det_file, z_position=180, ringN=1)
-    batch_file, viewer_file = make_script(name)
-    reaction, conf = make_isotropic(particle_name="proton", energy1=5, energy2=30, angle1=5, angle2=30)
-    add_script(batch_file, viewer_file, name, det_file.name, reaction, conf, macro_for_sim="root -q create_tree_for_qqq5.C")
-    reaction, conf = make_isotropic(particle_name="2H",     energy1=5, energy2=30, angle1=5, angle2=30)
-    add_script(batch_file, viewer_file, name, det_file.name, reaction, conf, macro_for_sim="root -q create_tree_for_qqq5.C")
+    #name = "ko2520_25Na"
+    #det_file = make_detector_file(name)
+    #add_target(output_file=det_file, thickness_um=2.5, radius=10, material="CH2")
+    #add_x6    (output_file=det_file, n_detectors=12, rho= 95.0, z_position=101+0.5*75, flip=1, ringN=1)
+    #add_x6    (output_file=det_file, n_detectors=12, rho=102.0, z_position=101+0.5*75, flip=0, ringN=1)
+    #add_x6    (output_file=det_file, n_detectors=16, rho=126.5, z_position= 40+0.5*75, flip=1, ringN=2)
+    #add_qqq5  (output_file=det_file, z_position=160, num_det=1, ringN=3)
+    ##add_qqq5  (output_file=det_file, z_position=160, num_det=2, ringN=3)
+    ##add_qqq5  (output_file=det_file, z_position=180, num_det=2, ringN=3, flip=0)
+    #cs_file_new = make_cs_file_with_angle_limit(cs_file_name="input/crosssection_drhbc_25Na_p.txt", angle1=40, angle2=160)
+    #reaction, conf = make_p_elastic(particle_name="25Na", energy=25*8, cs_file_name=cs_file_new)
+    #make_write_script(name, det_file.name, reaction, conf, macro_for_sim="root draw_ko2520.C")

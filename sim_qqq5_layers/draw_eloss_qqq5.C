@@ -14,11 +14,11 @@ void draw_eloss_qqq5(TString fileName="", TString fileName2="")
     cvsList = new TObjArray();
 
     gStyle -> SetOptStat(11111111);
-    if (fileName.IsNull()) fileName = "data/stark_qqq5.proton_e5_30_a5_30.pana.root";
+    if (fileName.IsNull()) fileName = "data/stark_qqq5.proton_e5_30_a5_30_z0.pana.root";
 
     if (1) {
-        fileName  = "data/stark_qqq5.proton_e5_30_a5_30.pana.root";
-        fileName2 = "data/stark_qqq5.2H_e5_30_a5_30.pana.root";
+        fileName  = "data/stark_qqq5.proton_e5_30_a5_30_z0.pana.root";
+        fileName2 = "data/stark_qqq5.2H_e5_30_a5_30_z0.pana.root";
     }
     cout << fileName << endl;
     cout << fileName2 << endl;

@@ -25,7 +25,7 @@ void draw_ko2520(TString fileName="")
     auto numEvents = tree -> GetEntries();
     if (test && numEvents>20) numEvents = 20;
 
-    auto file_ereco = new TFile("energy_restoration.root");
+    auto file_ereco = new TFile("../sim_qqq5_layers/energy_restoration.root");
     auto graph_ereco = (TGraph2D*) file_ereco -> Get("energy_restoration");
 
     const int max_detectors = 50;

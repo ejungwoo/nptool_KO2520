@@ -1,0 +1,4 @@
+cp input/stark_ko2421.det ~/data
+cp input/40Ar_elastic.reac ~/data
+cp batch_ko2421.sh ~/data
+cp viewer_ko2421.sh ~/data
